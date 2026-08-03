@@ -1,238 +1,362 @@
-import React, {useEffect} from 'react';
-import {Dimensions, ImageBackground, NativeEventEmitter, NativeModules, StatusBar, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {getStatusBarHeight, Icon, useStateWithCallback} from '../utils/Helper';
+import React, {useEffect, useRef} from 'react';
+import {
+  NativeEventEmitter,
+  NativeModules,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {Icon, useStateWithCallback} from '../utils/Helper';
+import {usePlayerSafeArea} from '../utils/safeArea';
+import ChromeVignette from './ChromeVignette';
 
-const {CastModule, SoulOrientationModule} = NativeModules;
-// Native MediaRouteButton bileşeni
+const {CastModule} = NativeModules;
+const castEventEmitter = CastModule ? new NativeEventEmitter(CastModule) : null;
+const CAST_SEEK_THROTTLE_MS = 1000;
 
-const castEventEmitter = new NativeEventEmitter(CastModule);
+const ControlButton = ({
+  testID,
+  accessibilityLabel,
+  onPress,
+  icon,
+  iconSize = 22,
+  iconColor,
+  label,
+  showLabel,
+  accent,
+}) => (
+  <TouchableOpacity
+    testID={testID}
+    accessibilityLabel={accessibilityLabel || label}
+    accessibilityRole="button"
+    style={[styles.button, accent && styles.buttonAccent]}
+    onPress={onPress}
+    hitSlop={8}
+  >
+    <Icon name={icon} size={iconSize} color={iconColor} />
+    {showLabel && label ? (
+      <Text style={[styles.buttonText, {color: iconColor}]} numberOfLines={1}>
+        {label}
+      </Text>
+    ) : null}
+  </TouchableOpacity>
+);
 
 const TopBar = ({
   isPlaying,
   currentTime,
   handleSeek,
   videoUrl,
+  title,
   onResetHideTimer,
-  onFullScreen,
-  showBackButton = false,
+  isFullscreen,
+  onToggleFullscreen,
+  showBack = false,
+  showFullscreen = true,
+  showCast = true,
+  showLabels = true,
+  labels = {},
   onBackButton = null,
-  isLoading = false,
   setIsLoading = null,
   onIsAndroidCastConnected = null,
   onTogglePlayPause,
+  onCastPress,
+  onCastStateChange,
   isMuted,
   volume,
+  accentColor = '#F5C542',
+  controlColor = '#ffffff',
 }) => {
-  const [screenWidth, setScreenWidth] = useStateWithCallback(Dimensions.get('window').width);
-  const [isFullscreen, setIsFullscreen] = useStateWithCallback(false);
-  const [isCastPlaying, setIsCastPlaying] = useStateWithCallback(isPlaying);
-
   const [isAndroidCastConnected, setIsAndroidCastConnected] = useStateWithCallback(false);
+  const lastCastSeekAt = useRef(0);
+  const currentTimeRef = useRef(currentTime);
+  const videoUrlRef = useRef(videoUrl);
+  const titleRef = useRef(title);
 
-  const enterFullscreen = (status) => {
-    StatusBar.setHidden(status, 'slide');
-    if (status) {
-      SoulOrientationModule.lockToLandscape();
-    } else {
-      SoulOrientationModule.lockToPortrait();
-    }
-    setIsFullscreen(status, () => onFullScreen(status));
-  };
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
+  useEffect(() => {
+    videoUrlRef.current = videoUrl;
+  }, [videoUrl]);
+  useEffect(() => {
+    titleRef.current = title;
+  }, [title]);
 
   const onCast = () => {
+    onCastPress && onCastPress();
+    if (!CastModule) {
+      return;
+    }
     if (Platform.OS === 'ios') {
-      if (CastModule.showAirPlayPickerDirectly) {
-        CastModule.showAirPlayPickerDirectly(
-            () => console.log('AirPlay picker displayed successfully on iOS'),
-            (error) => console.error('Error displaying AirPlay picker on iOS:', error),
-        );
-      } else {
-        console.error('showAirPlayPickerDirectly method is not defined on iOS');
-      }
+      CastModule.showAirPlayPickerDirectly?.(() => {}, () => {});
     } else if (Platform.OS === 'android') {
       if (isAndroidCastConnected) {
         CastModule.showControllerDialog();
       } else {
         CastModule.showCastDialog();
       }
-    } else {
-      console.error('Unsupported platform');
     }
   };
 
-  useEffect(() => {
-    const updateDimensions = () => {
-      const {width} = Dimensions.get('window');
-      setScreenWidth(width);
-    };
-    const subscription = Dimensions.addEventListener('change', updateDimensions);
-    return () => {
-      subscription?.remove();
-    };
-  }, []);
+  // Short tap on Cast is easy to hit by mistake next to Fullscreen — require hold.
+  const onCastShortPress = () => {
+    if (isAndroidCastConnected) {
+      onCast();
+      onResetHideTimer && onResetHideTimer();
+      return;
+    }
+    let ActionToast = null;
+    try {
+      ActionToast = require('@sekizlipenguen/react-native-popup-confirm-toast').ActionToast;
+    } catch (_e) {
+      ActionToast = null;
+    }
+    ActionToast?.show?.({
+      title: labels.cast || 'Cast',
+      message: labels.castHoldHint || 'Press and hold to cast',
+      type: 'info',
+      duration: 1600,
+    });
+    onResetHideTimer && onResetHideTimer();
+  };
 
   useEffect(() => {
+    if (Platform.OS !== 'android' || !isAndroidCastConnected || !CastModule?.seekTo) {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastCastSeekAt.current < CAST_SEEK_THROTTLE_MS) {
+      return;
+    }
+    lastCastSeekAt.current = now;
     CastModule.seekTo(currentTime);
-  }, [currentTime]);
+  }, [currentTime, isAndroidCastConnected]);
 
   useEffect(() => {
-    if (isAndroidCastConnected) {
-      if (isPlaying) {
-        CastModule.play();
-      } else {
-        CastModule.pause();
-      }
+    if (Platform.OS !== 'android' || !isAndroidCastConnected || !CastModule) {
+      return;
     }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    if (isAndroidCastConnected) {
-      CastModule.setVolume(isMuted ? 0 : volume);
+    if (isPlaying) {
+      CastModule.play();
+    } else {
+      CastModule.pause();
     }
-  }, [isMuted, volume]);
+  }, [isPlaying, isAndroidCastConnected]);
 
   useEffect(() => {
+    if (Platform.OS !== 'android' || !isAndroidCastConnected || !CastModule?.setVolume) {
+      return;
+    }
+    CastModule.setVolume(isMuted ? 0 : volume).catch(() => {});
+  }, [isMuted, volume, isAndroidCastConnected]);
+
+  useEffect(() => {
+    if (!castEventEmitter) {
+      return undefined;
+    }
+
+    if (Platform.OS === 'ios') {
+      // AirPlay routes AVPlayer itself — keep local playback running.
+      // Only mirror connected UI + host callback (do not pause/mute via Android cast path).
+      const onAirPlayStart = castEventEmitter.addListener('onAirPlayStart', () => {
+        setIsAndroidCastConnected(true);
+        onCastStateChange && onCastStateChange(true);
+      });
+      const onAirPlayStop = castEventEmitter.addListener('onAirPlayStop', () => {
+        setIsAndroidCastConnected(false);
+        onCastStateChange && onCastStateChange(false);
+      });
+      return () => {
+        onAirPlayStart.remove();
+        onAirPlayStop.remove();
+      };
+    }
+
+    if (Platform.OS !== 'android') {
+      return undefined;
+    }
 
     const onSessionStartingListener = castEventEmitter.addListener('onSessionStarting', () => {
-      setIsLoading(true); // Cihaz seçildiğinde loading başlat
-      setIsAndroidCastConnected(true, () => onIsAndroidCastConnected(true));
+      setIsLoading && setIsLoading(true);
+      setIsAndroidCastConnected(true, () => {
+        onIsAndroidCastConnected && onIsAndroidCastConnected(true);
+        onCastStateChange && onCastStateChange(true);
+      });
     });
 
     const onSessionStartedListener = castEventEmitter.addListener('onSessionStarted', () => {
-      onIsAndroidCastConnected(true);
-      setIsLoading(false); // Cast başladığında loading kapat
-      CastModule.playMedia(
-          videoUrl,
-          null,
-          null,
-      );
-      CastModule.seekTo(currentTime);
-      onTogglePlayPause(true);
+      onIsAndroidCastConnected && onIsAndroidCastConnected(true);
+      onCastStateChange && onCastStateChange(true);
+      setIsLoading && setIsLoading(false);
+      if (CastModule?.playMedia) {
+        CastModule.playMedia(videoUrlRef.current, titleRef.current || null, null);
+        CastModule.seekTo(currentTimeRef.current);
+      }
+      onTogglePlayPause && onTogglePlayPause(true);
     });
 
     const onSessionEndedListener = castEventEmitter.addListener('onSessionEnded', () => {
-      setIsLoading(false); // Cast sona erdiğinde loading kapat
+      setIsLoading && setIsLoading(false);
       setIsAndroidCastConnected(false, () => {
-        onIsAndroidCastConnected(false);
+        onIsAndroidCastConnected && onIsAndroidCastConnected(false);
+        onCastStateChange && onCastStateChange(false);
       });
     });
 
     const onSessionEndingListener = castEventEmitter.addListener('onSessionEnding', (raw) => {
-      const info = JSON.parse(raw);
-      if (handleSeek && info?.currentTime) {
-        handleSeek(info?.currentTime);
+      try {
+        const info = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        if (handleSeek && info?.currentTime) {
+          handleSeek(info.currentTime);
+        }
+      } catch (_e) {
+        // ignore
       }
     });
 
     return () => {
-      // Eventleri temizle
       onSessionStartingListener.remove();
       onSessionStartedListener.remove();
       onSessionEndedListener.remove();
       onSessionEndingListener.remove();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const insets = usePlayerSafeArea();
+  // Content insets only — fade wrap stays full-bleed to the player edges.
+  const contentPad = {
+    paddingTop: isFullscreen ? Math.max(insets.top || 0, 8) + 10 : 10,
+    paddingLeft: 12 + (insets.left || 0),
+    paddingRight: 12 + (insets.right || 0),
+  };
+
   return (
-      <>
-        <ImageBackground
-            source={require('../styles/img/top-vignette.png')}
-            style={[styles.container, {width: screenWidth, paddingTop: isFullscreen ? 20 : getStatusBarHeight()}]}
-            imageStyle={styles.vignette}
-        >
-          <View style={styles.leftButtons}>
-            {
-                showBackButton && (
-                    <>
-                      <TouchableOpacity
-                          style={styles.button}
-                          onPress={() => {
-                            if (isFullscreen) {
-                              enterFullscreen(false);
-                            }
-                            if (onBackButton) {
-                              onBackButton();
-                            }
-                          }}
-                      >
-                        <Icon name="arrow-back" size={25} color="#fff"/>
-                        <Text style={styles.buttonText}>Geri</Text>
-                      </TouchableOpacity>
+    <ChromeVignette
+      edge="top"
+      style={[styles.container, styles.topFade]}
+      contentStyle={contentPad}
+      pointerEvents="box-none"
+    >
+      <View style={styles.row} pointerEvents="box-none">
+        <View style={styles.leftButtons} pointerEvents="box-none">
+          {showBack ? (
+            <ControlButton
+              testID="soul-btn-back"
+              accessibilityLabel={labels.back}
+              icon="arrow-back"
+              iconColor={controlColor}
+              label={labels.back}
+              showLabel={showLabels}
+              onPress={() => {
+                if (isFullscreen) {
+                  onToggleFullscreen && onToggleFullscreen(false);
+                }
+                onBackButton && onBackButton();
+              }}
+            />
+          ) : null}
+        </View>
 
-                    </>
-                )
-            }
+        <View style={styles.rightButtons} pointerEvents="box-none">
+          {showFullscreen ? (
+            <ControlButton
+              testID="soul-btn-fullscreen"
+              accessibilityLabel={isFullscreen ? labels.exitFullscreen : labels.fullscreen}
+              icon={isFullscreen ? 'fullscreen-exit' : 'fullscreen'}
+              iconSize={24}
+              iconColor={controlColor}
+              label={isFullscreen ? labels.exitFullscreen : labels.fullscreen}
+              showLabel={showLabels}
+              onPress={() => onToggleFullscreen && onToggleFullscreen(!isFullscreen)}
+            />
+          ) : null}
 
-          </View>
-
-          <View style={styles.rightButtons}>
-
+          {showCast && CastModule ? (
             <TouchableOpacity
-                style={styles.button}
-                onPress={() => {
-                  enterFullscreen(!isFullscreen);
-                }}
+              testID="soul-btn-cast"
+              accessibilityLabel={isAndroidCastConnected ? labels.castStop : labels.cast}
+              accessibilityRole="button"
+              accessibilityHint={labels.castHoldHint}
+              style={[styles.button, isAndroidCastConnected && styles.buttonAccent]}
+              onPress={onCastShortPress}
+              onLongPress={() => {
+                onCast();
+                onResetHideTimer && onResetHideTimer();
+              }}
+              delayLongPress={450}
+              hitSlop={2}
             >
-              <Icon name={isFullscreen ? 'fullscreen-exit' : 'fullscreen'} size={30} color="#fff"/>
-              <Text style={styles.buttonText}>{isFullscreen ? 'Normal Ekran' : 'Tam Ekran'}</Text>
+              <Icon
+                name={isAndroidCastConnected ? 'cast-connected' : 'cast'}
+                size={22}
+                color={isAndroidCastConnected ? accentColor : controlColor}
+              />
+              {showLabels ? (
+                <Text
+                  style={[
+                    styles.buttonText,
+                    {color: isAndroidCastConnected ? accentColor : controlColor},
+                  ]}
+                  numberOfLines={1}
+                >
+                  {isAndroidCastConnected ? labels.castStop : labels.cast}
+                </Text>
+              ) : null}
             </TouchableOpacity>
-
-            {/* Yansıt Butonu */}
-            <TouchableOpacity
-                style={[styles.button, {marginLeft: 3}]}
-                onPress={() => {
-                  onCast();
-                  onResetHideTimer();
-                }}
-            >
-              <Icon name={isAndroidCastConnected ? 'cast-connected' : 'cast'} size={22} color="#fff"/>
-              <Text style={[styles.buttonText, {paddingLeft: 5}]}>{isAndroidCastConnected ? 'Durdur' : 'Yansıt'}</Text>
-            </TouchableOpacity>
-
-          </View>
-
-        </ImageBackground>
-      </>
+          ) : null}
+        </View>
+      </View>
+    </ChromeVignette>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    top: 0,
-    flex: 1,
+    width: '100%',
+  },
+  // Modest fade — dark at the top edge, soft falloff (not a huge slab).
+  topFade: {
+    minHeight: 96,
+    justifyContent: 'flex-start',
+    paddingBottom: 12,
+  },
+  row: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    alignItems: 'flex-start',
   },
   leftButtons: {
     flexDirection: 'column',
-    alignItems: 'flex-end',
-    alignSelf: 'flex-start',
+    alignItems: 'flex-start',
+    gap: 4,
   },
   rightButtons: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   button: {
     alignItems: 'center',
-    marginRight: 10,
     flexDirection: 'row',
-    padding: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    minHeight: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    gap: 6,
+  },
+  buttonAccent: {
+    backgroundColor: 'rgba(245,197,66,0.2)',
   },
   buttonText: {
-    color: '#fff',
     fontSize: 12,
-    marginLeft: 5,
-  },
-  vignette: {
-    resizeMode: 'stretch',
-  },
-  castButton: {
-    width: 50,
-    height: 50,
+    fontWeight: '600',
+    maxWidth: 110,
   },
 });
 

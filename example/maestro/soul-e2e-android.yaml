@@ -1,0 +1,235 @@
+appId: com.soulplayerexample
+name: soul-e2e-android
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: "app-title"
+    timeout: 60000
+- assertVisible: "Ads OFF"
+
+- runFlow:
+    when:
+      visible: "Ads ON"
+    commands:
+      - tapOn:
+          id: "btn-ads-toggle"
+
+- runFlow:
+    when:
+      visible: "Play"
+    commands:
+      - tapOn:
+          id: "btn-toggle-pause"
+
+# ===== Chrome =====
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 12000
+- assertVisible:
+    id: "soul-btn-settings"
+- assertVisible:
+    id: "soul-btn-fullscreen"
+- assertVisible:
+    id: "soul-btn-back"
+- assertVisible:
+    id: "soul-btn-cast"
+- assertVisible:
+    id: "soul-btn-lock"
+- assertVisible:
+    id: "soul-btn-mute"
+- assertVisible:
+    id: "soul-btn-rewind"
+- assertVisible:
+    id: "soul-btn-forward"
+- assertVisible:
+    id: "soul-btn-pip"
+- assertVisible:
+    id: "soul-btn-sleep"
+- assertVisible:
+    id: "soul-btn-share"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_01_chrome"
+# ===== Hide / show chrome via host API =====
+- tapOn:
+    id: "btn-hide-chrome"
+- waitForAnimationToEnd:
+    timeout: 1000
+- extendedWaitUntil:
+    notVisible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- tapOn:
+    id: "btn-show-chrome"
+- waitForAnimationToEnd:
+    timeout: 1000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_01b_chrome_api"
+# ===== Ads early (host taps before sleep/settings Modals) =====
+- tapOn: "Ads OFF"
+- waitForAnimationToEnd:
+    timeout: 2500
+- extendedWaitUntil:
+    visible: "Ads ON"
+    timeout: 20000
+# Preroll may finish before we poll Ad START — Ad END status is the durable signal.
+- extendedWaitUntil:
+    visible: "Ad END"
+    timeout: 90000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_06_ad_done_status"
+- tapOn: "Ads ON"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible: "Ads OFF"
+    timeout: 15000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_07_ad_done"
+# ===== Transport =====
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-mute"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-mute"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-forward"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-rewind"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-play-pause"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-play-pause"
+- waitForAnimationToEnd:
+    timeout: 800
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_02_transport"
+# ===== Sleep (no ActionToast wait — just exercise the control) =====
+- tapOn:
+    id: "soul-btn-sleep"
+- waitForAnimationToEnd:
+    timeout: 2500
+- tapOn:
+    point: "50%,5%"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# ===== Host source switch =====
+- tapOn:
+    id: "source-hls-apple"
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn:
+    id: "btn-info"
+- waitForAnimationToEnd:
+    timeout: 1000
+- tapOn:
+    id: "source-hls"
+- waitForAnimationToEnd:
+    timeout: 4000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 10000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_03_host"
+# ===== Settings =====
+- tapOn:
+    id: "soul-btn-settings"
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 10000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_05_settings"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# ===== Lock =====
+- tapOn:
+    id: "soul-btn-lock"
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-unlock"
+    timeout: 5000
+- assertNotVisible:
+    id: "soul-btn-play-pause"
+- longPressOn:
+    id: "soul-btn-unlock"
+- waitForAnimationToEnd:
+    timeout: 2500
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_04_lock"
+# ===== Seek =====
+- tapOn:
+    id: "btn-seek-mid"
+- waitForAnimationToEnd:
+    timeout: 2500
+
+# ===== Fullscreen + Cast =====
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-fullscreen"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-fullscreen"
+- waitForAnimationToEnd:
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 10000
+- assertVisible:
+    id: "soul-btn-cast"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_08_fullscreen"
+- longPressOn:
+    id: "soul-btn-cast"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_09_cast"
+- pressKey: back
+- waitForAnimationToEnd:
+    timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-settings"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-settings"
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 6000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_10_settings_fs"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 1500
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/and_e2e_11_done"

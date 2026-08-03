@@ -1,0 +1,149 @@
+appId: com.soulplayerexample
+name: soul-integrity
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: "app-title"
+    timeout: 45000
+
+- assertVisible: "Ads OFF"
+- assertVisible: "Ready — ads off, cover fit"
+
+- runFlow:
+    when:
+      visible: "Ads ON"
+    commands:
+      - tapOn:
+          id: "btn-ads-toggle"
+      - waitForAnimationToEnd:
+          timeout: 4000
+
+- runFlow:
+    when:
+      visible: "Play"
+    commands:
+      - tapOn:
+          id: "btn-toggle-pause"
+
+# Chrome stays visible (example autoHide:false); API hide/show still covered
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 10000
+- assertVisible:
+    id: "soul-btn-settings"
+- assertVisible:
+    id: "soul-btn-fullscreen"
+- assertVisible:
+    id: "soul-btn-back"
+- tapOn:
+    id: "btn-hide-chrome"
+- extendedWaitUntil:
+    notVisible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- tapOn:
+    id: "btn-show-chrome"
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/01_chrome_restored"
+# --- Lock ---
+- tapOn:
+    id: "soul-btn-lock"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-unlock"
+    timeout: 5000
+- assertNotVisible:
+    id: "soul-btn-play-pause"
+- longPressOn:
+    id: "soul-btn-unlock"
+- waitForAnimationToEnd:
+    timeout: 2500
+- assertNotVisible:
+    id: "soul-btn-unlock"
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 6000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/02_lock_unlocked"
+# --- Inline settings ---
+- tapOn:
+    id: "soul-btn-settings"
+- waitForAnimationToEnd:
+    timeout: 2500
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 6000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/03_settings_inline"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# --- Fullscreen chrome + FS settings ---
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-fullscreen"
+    timeout: 4000
+- tapOn:
+    id: "soul-btn-fullscreen"
+- waitForAnimationToEnd:
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- assertVisible:
+    id: "soul-btn-settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/04_fullscreen"
+- tapOn:
+    id: "soul-btn-settings"
+- waitForAnimationToEnd:
+    timeout: 2500
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 6000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/05_settings_fs"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# --- Ads ON skip surface ---
+- pressKey: back
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "btn-ads-toggle"
+    timeout: 10000
+- tapOn:
+    id: "btn-ads-toggle"
+- waitForAnimationToEnd:
+    timeout: 2500
+- tapOn:
+    id: "btn-replay-ads"
+- waitForAnimationToEnd:
+    timeout: 4000
+- extendedWaitUntil:
+    visible:
+      id: "soul-ad-overlay"
+    timeout: 20000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/06_ad_skip"

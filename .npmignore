@@ -1,0 +1,14 @@
+example/
+.idea/
+.DS_Store
+.git/
+.gitignore
+*.log
+node_modules/
+android/.gradle/
+android/build/
+android/.cxx/
+.cursor
+package-lock.json
+yarn.lock
+**/.DS_Store

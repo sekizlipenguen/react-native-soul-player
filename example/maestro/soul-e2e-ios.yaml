@@ -1,0 +1,303 @@
+appId: com.sekizlipenguen.soulplayerexample
+name: soul-e2e-ios
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: "app-title"
+    timeout: 60000
+- assertVisible: "Ads OFF"
+
+- runFlow:
+    when:
+      visible: "Play"
+    commands:
+      - tapOn:
+          id: "btn-toggle-pause"
+
+# ===== Chrome (autoHide false on iOS) =====
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 12000
+- assertVisible:
+    id: "soul-btn-settings"
+- assertVisible:
+    id: "soul-btn-fullscreen"
+- assertVisible:
+    id: "soul-btn-back"
+- assertVisible:
+    id: "soul-btn-cast"
+- assertVisible:
+    id: "soul-btn-lock"
+- assertVisible:
+    id: "soul-btn-mute"
+- assertVisible:
+    id: "soul-btn-rewind"
+- assertVisible:
+    id: "soul-btn-forward"
+- assertVisible:
+    id: "soul-btn-pip"
+- assertVisible:
+    id: "soul-btn-sleep"
+- assertVisible:
+    id: "soul-btn-share"
+- assertVisible:
+    id: "soul-time-current"
+- assertVisible:
+    id: "soul-time-duration"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_01_chrome"
+# ===== Hide / show chrome via host API =====
+- tapOn:
+    id: "btn-hide-chrome"
+- waitForAnimationToEnd:
+    timeout: 1000
+- extendedWaitUntil:
+    notVisible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- tapOn:
+    id: "btn-show-chrome"
+- waitForAnimationToEnd:
+    timeout: 1000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_01b_chrome_api"
+# ===== Transport =====
+- tapOn:
+    id: "soul-btn-mute"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-forward"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-rewind"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-play-pause"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "soul-btn-play-pause"
+- waitForAnimationToEnd:
+    timeout: 800
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_02_transport"
+# ===== Sleep + Share (toast / sheet) =====
+- tapOn:
+    id: "soul-btn-sleep"
+- waitForAnimationToEnd:
+    timeout: 1500
+- tapOn:
+    id: "soul-btn-share"
+- waitForAnimationToEnd:
+    timeout: 2500
+# Dismiss iOS share sheet (locale-agnostic: Close / Cancel / Vazgeç / tap outside)
+- runFlow:
+    when:
+      visible: "Close"
+    commands:
+      - tapOn: "Close"
+- runFlow:
+    when:
+      visible: "Cancel"
+    commands:
+      - tapOn: "Cancel"
+- runFlow:
+    when:
+      visible: "Vazgeç"
+    commands:
+      - tapOn: "Vazgeç"
+- tapOn:
+    point: "50%,8%"
+- waitForAnimationToEnd:
+    timeout: 1200
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_03_sleep_share"
+# ===== Host: source switch + info + labels =====
+- tapOn:
+    id: "source-hls-apple"
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn:
+    id: "btn-info"
+- waitForAnimationToEnd:
+    timeout: 1000
+- assertVisible:
+    id: "app-status"
+- tapOn:
+    id: "btn-labels"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "btn-labels"
+- waitForAnimationToEnd:
+    timeout: 800
+- tapOn:
+    id: "source-hls"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_04_host"
+# ===== Lock =====
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-lock"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-lock"
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-unlock"
+    timeout: 5000
+- assertNotVisible:
+    id: "soul-btn-play-pause"
+- longPressOn:
+    id: "soul-btn-unlock"
+- waitForAnimationToEnd:
+    timeout: 2500
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_05_lock"
+# ===== Settings =====
+- tapOn:
+    id: "soul-btn-settings"
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 6000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_06_settings"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# ===== Ads: toggle ON → wait for preroll overlay =====
+- tapOn:
+    point: "50%,6%"
+- waitForAnimationToEnd:
+    timeout: 800
+- runFlow:
+    when:
+      visible: "Ads ON"
+    commands:
+      - tapOn: "Ads ON"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- extendedWaitUntil:
+    visible: "Ads OFF"
+    timeout: 8000
+- tapOn: "Ads OFF"
+- extendedWaitUntil:
+    visible: "Ads ON"
+    timeout: 10000
+- extendedWaitUntil:
+    visible:
+      id: "soul-ad-overlay"
+    timeout: 40000
+- assertVisible:
+    id: "soul-ad-badge"
+- assertVisible:
+    id: "soul-ad-progress"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_07_ad_chrome"
+# Skip when unlocked; otherwise let preroll finish (do not hard-fail on countdown)
+- waitForAnimationToEnd:
+    timeout: 4000
+- runFlow:
+    when:
+      visible:
+        id: "soul-ad-skip"
+    commands:
+      - tapOn:
+          id: "soul-ad-skip"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible:
+        id: "soul-ad-skip"
+    commands:
+      - tapOn:
+          id: "soul-ad-skip"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- extendedWaitUntil:
+    visible: "Ads ON"
+    timeout: 90000
+- tapOn: "Ads ON"
+- extendedWaitUntil:
+    visible: "Ads OFF"
+    timeout: 10000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_08_ad_done"
+# ===== Seek helpers =====
+- tapOn:
+    id: "btn-seek-mid"
+- waitForAnimationToEnd:
+    timeout: 2500
+- tapOn:
+    id: "btn-info"
+- waitForAnimationToEnd:
+    timeout: 800
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_09_seek"
+# ===== Fullscreen + cast + FS settings =====
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-fullscreen"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-fullscreen"
+- waitForAnimationToEnd:
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 10000
+- assertVisible:
+    id: "soul-btn-cast"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_10_fullscreen"
+- longPressOn:
+    id: "soul-btn-cast"
+- waitForAnimationToEnd:
+    timeout: 3500
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_11_airplay"
+- tapOn:
+    point: "10%,12%"
+- waitForAnimationToEnd:
+    timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-settings"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-settings"
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 6000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_12_settings_fs"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 1500
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_e2e_13_done"

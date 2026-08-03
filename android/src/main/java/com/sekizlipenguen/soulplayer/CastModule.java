@@ -35,9 +35,18 @@ public class CastModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "CastModule initialized.");
 
         UiThreadUtil.runOnUiThread(() -> {
-            CastContext.getSharedInstance(reactContext).getSessionManager().addSessionManagerListener(
-                sessionManagerListener, CastSession.class
-            );
+            try {
+                CastContext castContext = CastContext.getSharedInstance(reactContext);
+                if (castContext == null || castContext.getSessionManager() == null) {
+                    Log.w(TAG, "CastContext unavailable; session listener not registered.");
+                    return;
+                }
+                castContext.getSessionManager().addSessionManagerListener(
+                        sessionManagerListener, CastSession.class);
+            } catch (Exception e) {
+                // Never crash host app init if Play Services / OptionsProvider fails.
+                Log.e(TAG, "Failed to register Cast session listener", e);
+            }
         });
     }
 
@@ -51,12 +60,25 @@ public class CastModule extends ReactContextBaseJavaModule {
     public void showCastDialog() {
         UiThreadUtil.runOnUiThread(() -> {
             try {
+                android.app.Activity activity = getCurrentActivity();
+                if (activity == null || activity.isFinishing()) {
+                    Log.w(TAG, "showCastDialog: activity is null/finishing");
+                    return;
+                }
                 CastContext castContext = CastContext.getSharedInstance(getReactApplicationContext());
-                castContext.getSessionManager().endCurrentSession(true); // Aktif oturum varsa sonlandır
+                if (castContext != null && castContext.getSessionManager() != null) {
+                    castContext.getSessionManager().endCurrentSession(true);
+                }
 
-                // MediaRouteChooserDialog aç
-                androidx.mediarouter.app.MediaRouteChooserDialog dialog = new androidx.mediarouter.app.MediaRouteChooserDialog(getCurrentActivity());
-                dialog.setRouteSelector(new androidx.mediarouter.media.MediaRouteSelector.Builder().addControlCategory(com.google.android.gms.cast.CastMediaControlIntent.categoryForCast(com.google.android.gms.cast.CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID)).build());
+                androidx.mediarouter.app.MediaRouteChooserDialog dialog =
+                        new androidx.mediarouter.app.MediaRouteChooserDialog(activity);
+                dialog.setRouteSelector(
+                        new androidx.mediarouter.media.MediaRouteSelector.Builder()
+                                .addControlCategory(
+                                        com.google.android.gms.cast.CastMediaControlIntent.categoryForCast(
+                                                com.google.android.gms.cast.CastMediaControlIntent
+                                                        .DEFAULT_MEDIA_RECEIVER_APPLICATION_ID))
+                                .build());
                 dialog.show();
                 Log.d(TAG, "Cast dialog opened using MediaRouteChooserDialog.");
             } catch (Exception e) {
@@ -69,8 +91,13 @@ public class CastModule extends ReactContextBaseJavaModule {
     public void showControllerDialog() {
         UiThreadUtil.runOnUiThread(() -> {
             try {
-                // MediaRouteControllerDialog'u aç
-                androidx.mediarouter.app.MediaRouteControllerDialog dialog = new androidx.mediarouter.app.MediaRouteControllerDialog(getCurrentActivity());
+                android.app.Activity activity = getCurrentActivity();
+                if (activity == null || activity.isFinishing()) {
+                    Log.w(TAG, "showControllerDialog: activity is null/finishing");
+                    return;
+                }
+                androidx.mediarouter.app.MediaRouteControllerDialog dialog =
+                        new androidx.mediarouter.app.MediaRouteControllerDialog(activity);
                 dialog.show();
                 Log.d(TAG, "Controller dialog opened using MediaRouteControllerDialog.");
             } catch (Exception e) {
@@ -199,11 +226,18 @@ public class CastModule extends ReactContextBaseJavaModule {
 
                 if (remoteMediaClient != null) {
                     MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MOVIE);
-                    mediaMetadata.putString(MediaMetadata.KEY_TITLE, title);
+                    mediaMetadata.putString(
+                            MediaMetadata.KEY_TITLE,
+                            title != null && !title.isEmpty() ? title : "Video"
+                    );
+
+                    String contentType = mimeType != null && !mimeType.isEmpty()
+                            ? mimeType
+                            : "application/vnd.apple.mpegurl";
 
                     MediaInfo mediaInfo = new MediaInfo.Builder(url)
                             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-                            .setContentType(mimeType)
+                            .setContentType(contentType)
                             .setMetadata(mediaMetadata)
                             .build();
 
@@ -374,8 +408,9 @@ public class CastModule extends ReactContextBaseJavaModule {
     }
 
     private void sendEvent(String eventName, @Nullable JSONObject params) {
-        if (getReactApplicationContext().hasActiveCatalystInstance()) {
-            getReactApplicationContext()
+        ReactApplicationContext context = getReactApplicationContext();
+        if (context.hasActiveReactInstance()) {
+            context
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                 .emit(eventName, params != null ? params.toString() : null);
         }

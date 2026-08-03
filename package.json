@@ -1,20 +1,99 @@
 {
   "name": "@sekizlipenguen/react-native-soul-player",
   "version": "1.0.0",
-  "description": "React Native Soul Player - A customizable and feature-rich video player for React Native apps.",
-  "main": "src/components/SoulPlayer.js",
+  "description": "YouTube-class React Native video player UI on react-native-video: gestures, HLS quality, audio/subtitles, ads (preroll/midroll/VAST), immersive fullscreen, Chromecast, AirPlay, PiP, lock, i18n (TR+20 locales).",
+  "main": "index.js",
   "types": "index.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "author": "Sekizli Penguen (https://github.com/sekizlipenguen)",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/sekizlipenguen/react-native-soul-player#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sekizlipenguen/react-native-soul-player.git"
   },
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/sekizlipenguen/react-native-soul-player/issues"
   },
-  "homepage": "https://github.com/sekizlipenguen/react-native-soul-player#readme"
+  "files": [
+    "src",
+    "android",
+    "ios",
+    "docs",
+    "react-native-soul-player.podspec",
+    "react-native.config.js",
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "dependencies": {
+    "@react-native-community/slider": "^5.2.0",
+    "@sekizlipenguen/react-native-popup-confirm-toast": "^2.2.7",
+    "@sekizlipenguen/react-native-scroll-menu": "^2.0.0"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": ">=0.70",
+    "react-native-safe-area-context": ">=4.0.0",
+    "react-native-screens": ">=3.16.0",
+    "react-native-video": ">=6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react-native-safe-area-context": {
+      "optional": true
+    },
+    "react-native-screens": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node -e \"require('./src/utils/AnalyzeManifest.js'); const a=require('./src/ads/AdController.js'); require('./src/ads/Vast.js'); const p=a.pickCreatives({urls:['a','b']}); if(p.mode!=='waterfall'||p.items.length!==2) throw new Error('waterfall'); const q=a.pickCreatives({creatives:[{url:'1'},{url:'2'}]}); if(q.mode!=='pod') throw new Error('pod'); console.log('ok')\""
+  },
+  "keywords": [
+    "react-native",
+    "react-native-video",
+    "video",
+    "video-player",
+    "media-player",
+    "soul-player",
+    "youtube-player",
+    "ott",
+    "vod",
+    "streaming",
+    "hls",
+    "m3u8",
+    "dash",
+    "exoplayer",
+    "avplayer",
+    "adaptive-bitrate",
+    "quality-picker",
+    "audio-tracks",
+    "subtitles",
+    "closed-captions",
+    "vtt",
+    "gestures",
+    "double-tap-seek",
+    "hold-to-speed",
+    "swipe-volume",
+    "brightness",
+    "fullscreen",
+    "immersive",
+    "picture-in-picture",
+    "pip",
+    "chromecast",
+    "airplay",
+    "ads",
+    "preroll",
+    "midroll",
+    "postroll",
+    "vast",
+    "ad-pod",
+    "waterfall",
+    "chapters",
+    "sleep-timer",
+    "control-lock",
+    "i18n",
+    "localization",
+    "turkish",
+    "sekizlipenguen"
+  ]
 }

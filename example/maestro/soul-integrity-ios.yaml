@@ -1,0 +1,174 @@
+appId: com.sekizlipenguen.soulplayerexample
+name: soul-integrity-ios
+---
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: "app-title"
+    timeout: 60000
+
+# --- Defaults ---
+- assertVisible: "Ads OFF"
+- assertVisible: "Ready — ads off, cover fit"
+
+- runFlow:
+    when:
+      visible: "Play"
+    commands:
+      - tapOn:
+          id: "btn-toggle-pause"
+
+# Example uses autoHide:false so chrome stays Maestro-driveable on iOS.
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 10000
+- assertVisible:
+    id: "soul-btn-settings"
+- assertVisible:
+    id: "soul-btn-fullscreen"
+- assertVisible:
+    id: "soul-btn-back"
+- assertVisible:
+    id: "soul-btn-cast"
+- assertVisible:
+    id: "soul-btn-lock"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_01_chrome"
+# --- Host controls ---
+- tapOn:
+    id: "btn-ads-toggle"
+- waitForAnimationToEnd:
+    timeout: 2000
+- assertVisible: "Ads ON"
+- tapOn:
+    id: "btn-ads-toggle"
+- waitForAnimationToEnd:
+    timeout: 2000
+- assertVisible: "Ads OFF"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_01b_host_taps"
+# --- Lock ---
+- tapOn:
+    id: "soul-btn-lock"
+- waitForAnimationToEnd:
+    timeout: 2000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-unlock"
+    timeout: 5000
+- assertNotVisible:
+    id: "soul-btn-play-pause"
+- longPressOn:
+    id: "soul-btn-unlock"
+- waitForAnimationToEnd:
+    timeout: 2500
+- assertNotVisible:
+    id: "soul-btn-unlock"
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_02_lock_unlocked"
+# --- Inline settings ---
+- tapOn:
+    id: "soul-btn-settings"
+- waitForAnimationToEnd:
+    timeout: 2500
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 6000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_03_settings_inline"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# --- Ads ON skip surface (before FS — exit-FS is flaky with enterFullscreenOnRotate) ---
+- tapOn:
+    id: "btn-ads-toggle"
+- waitForAnimationToEnd:
+    timeout: 2500
+- assertVisible: "Ads ON"
+- tapOn:
+    id: "btn-replay-ads"
+- waitForAnimationToEnd:
+    timeout: 4000
+- extendedWaitUntil:
+    visible:
+      id: "soul-ad-overlay"
+    timeout: 15000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_04_ad_skip"
+# Turn ads off again for a clean FS content session
+- runFlow:
+    when:
+      visible:
+        id: "btn-ads-toggle"
+    commands:
+      - tapOn:
+          id: "btn-ads-toggle"
+      - waitForAnimationToEnd:
+          timeout: 2000
+- runFlow:
+    when:
+      visible: "Ads ON"
+    commands:
+      - tapOn:
+          id: "btn-ads-toggle"
+      - waitForAnimationToEnd:
+          timeout: 2000
+
+# --- Fullscreen immersive + AirPlay ---
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-fullscreen"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-fullscreen"
+- waitForAnimationToEnd:
+    timeout: 5000
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-play-pause"
+    timeout: 8000
+- assertVisible:
+    id: "soul-btn-settings"
+- assertVisible:
+    id: "soul-btn-cast"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_05_fullscreen"
+- longPressOn:
+    id: "soul-btn-cast"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_06_airplay_longpress"
+- tapOn:
+    point: "10%,10%"
+- waitForAnimationToEnd:
+    timeout: 1500
+- extendedWaitUntil:
+    visible:
+      id: "soul-btn-settings"
+    timeout: 8000
+- tapOn:
+    id: "soul-btn-settings"
+- waitForAnimationToEnd:
+    timeout: 2500
+- extendedWaitUntil:
+    visible:
+      id: "soul-settings-modal"
+    timeout: 6000
+- assertVisible: "Settings"
+- takeScreenshot:
+    path: "/tmp/soul-player-maestro/ios_07_settings_fs"
+- tapOn:
+    id: "soul-settings-close"
+- waitForAnimationToEnd:
+    timeout: 1500

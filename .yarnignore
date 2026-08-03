@@ -1,0 +1,10 @@
+example
+node_modules
+**/build
+**/.gradle
+**/Pods
+**/.cxx
+**/*.tgz
+.DS_Store
+agent-transcripts
+docs/screenshots

@@ -7,24 +7,17 @@ Pod::Spec.new do |s|
   s.version        = package["version"]
   s.summary        = package["description"]
   s.description    = package["description"]
-  s.license        = package["license"]
+  s.license        = { :type => "UNLICENSED", :file => "README.md" }
   s.author         = package["author"]
   s.homepage       = package["homepage"]
   s.source         = { :git => "https://github.com/sekizlipenguen/react-native-soul-player.git", :tag => "v#{s.version}" }
-  s.platforms      = { :ios => "13.0" }
+  s.platforms      = { :ios => "15.1" }
+  s.source_files   = "ios/**/*.{h,m,mm,swift}"
+  s.frameworks     = "AVKit", "AVFoundation", "MediaPlayer"
 
-  # Kaynak dosyalar
-  s.source_files   = "ios/**/*.{h,m,swift}"
-
-  # React Native Bağımlılıkları
-  s.dependency "React"
-  s.dependency "React-Core"
-  s.dependency "React-RCTNetwork"
-  s.dependency "React-Codegen"
-  s.dependency "RCT-Folly"
-  s.dependency "RCTRequired"
-  s.dependency "RCTTypeSafety"
-  s.dependency "ReactCommon/turbomodule/core"
-  # Frameworkler
-  s.frameworks = ["AVKit", "MediaPlayer"]
+  if defined?(install_modules_dependencies)
+    install_modules_dependencies(s)
+  else
+    s.dependency "React-Core"
+  end
 end

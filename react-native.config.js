@@ -1,9 +1,11 @@
 module.exports = {
   dependency: {
     platforms: {
-      ios: {}, // iOS için otomatik bağlantı
+      ios: {},
       android: {
-        sourceDir: './android', // Android modül yolu
+        sourceDir: './android',
+        packageImportPath: 'import com.sekizlipenguen.soulplayer.SoulPlayerPackage;',
+        packageInstance: 'new SoulPlayerPackage()',
       },
     },
   },

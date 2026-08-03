@@ -16,8 +16,9 @@ public class SoulPlayerPackage implements ReactPackage {
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
-        modules.add(new CastModule(reactContext)); // CastModule ekleniyor
-        modules.add(new SoulOrientationModule(reactContext)); // SoulOrientationModule ekleniyor
+        modules.add(new CastModule(reactContext));
+        modules.add(new SoulOrientationModule(reactContext));
+        modules.add(new SoulBrightnessModule(reactContext));
         return modules;
     }
 

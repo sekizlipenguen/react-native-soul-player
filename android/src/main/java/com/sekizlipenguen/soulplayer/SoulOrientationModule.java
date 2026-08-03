@@ -2,11 +2,17 @@ package com.sekizlipenguen.soulplayer;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.os.Build;
+import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import android.util.Log;
 
 public class SoulOrientationModule extends ReactContextBaseJavaModule {
     private Activity activity;
@@ -97,5 +103,57 @@ public class SoulOrientationModule extends ReactContextBaseJavaModule {
                 Log.d(TAG, "unlockAllOrientations: Activity is null");
             }
         }
+    }
+
+    /**
+     * Sticky-immersive system bars (status + nav). Devices with a 3-button / gesture
+     * nav bar otherwise paint player chrome underneath that inset.
+     */
+    @ReactMethod
+    public void setImmersiveMode(boolean enabled) {
+        final Activity current = activity != null ? activity : getCurrentActivity();
+        if (current == null) {
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "setImmersiveMode: Activity is null");
+            }
+            return;
+        }
+        current.runOnUiThread(() -> {
+            Window window = current.getWindow();
+            if (window == null) {
+                return;
+            }
+            View decor = window.getDecorView();
+            if (enabled) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    WindowInsetsController controller = window.getInsetsController();
+                    if (controller != null) {
+                        controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                        controller.setSystemBarsBehavior(
+                                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                    }
+                } else {
+                    //noinspection deprecation
+                    decor.setSystemUiVisibility(
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                    | View.SYSTEM_UI_FLAG_FULLSCREEN);
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                WindowInsetsController controller = window.getInsetsController();
+                if (controller != null) {
+                    controller.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                }
+            } else {
+                //noinspection deprecation
+                decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+            }
+            if (BuildConfig.DEBUG) {
+                Log.d(TAG, "setImmersiveMode: " + enabled);
+            }
+        });
     }
 }
