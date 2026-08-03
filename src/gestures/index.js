@@ -6,7 +6,7 @@ import {NativeModules} from 'react-native';
 
 export const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-/** Left half = brightness, right half = volume (YouTube-style). */
+/** Left half = brightness, right half = volume. */
 export const resolveSwipeZone = (x, width) => {
   if (!width || x == null) {
     return 'volume';

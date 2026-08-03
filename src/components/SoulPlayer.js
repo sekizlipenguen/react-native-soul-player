@@ -153,7 +153,8 @@ const SoulPlayer = forwardRef((props, ref) => {
         swipeBrightness: false,
       };
     }
-    if (preset === 'youtube') {
+    if (preset === 'gesture' || preset === 'youtube') {
+      // `youtube` kept as alias for older callers
       return {...base, showLabels: false, doubleTapSeek: true, holdToSpeed: true};
     }
     if (preset === 'tv') {
@@ -280,7 +281,7 @@ const SoulPlayer = forwardRef((props, ref) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paused]);
 
-  // Hide only while content is playing — keep chrome up when paused (YouTube-like).
+  // Hide only while content is playing — keep chrome up when paused.
   const autoHideEnabled = controls.autoHide !== false && !isAdPlaying && isPlaying;
   const autoHideDelayMs = controls.autoHideDelay || 3000;
 
@@ -1029,7 +1030,7 @@ const SoulPlayer = forwardRef((props, ref) => {
     onAdBreakStart && onAdBreakStart(normalized);
   };
 
-  // Wall-clock skip timer (YouTube-like): counts even while the ad is buffering.
+  // Wall-clock skip timer: counts even while the ad is buffering.
   useEffect(() => {
     if (!isAdPlaying) {
       setAdWallElapsed(0);

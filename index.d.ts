@@ -191,7 +191,8 @@ declare module '@sekizlipenguen/react-native-soul-player' {
     startTime?: number;
     isLive?: boolean;
     isOffline?: boolean;
-    preset?: 'full' | 'minimal' | 'youtube' | 'tv';
+    /** `youtube` is a deprecated alias of `gesture`. */
+    preset?: 'full' | 'minimal' | 'gesture' | 'tv' | 'youtube';
     holdRate?: number;
     style?: StyleProp<ViewStyle>;
     /**

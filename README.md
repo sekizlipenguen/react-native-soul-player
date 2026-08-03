@@ -5,7 +5,7 @@
 
 # @sekizlipenguen/react-native-soul-player
 
-**Ship a YouTube-class video experience in React Native — without rebuilding the player from scratch.**
+**Ship a polished video player experience in React Native — without rebuilding the UI from scratch.**
 
 Soul Player is a free, highly configurable **video UI layer** on [`react-native-video`](https://github.com/TheWidlarzGroup/react-native-video): soft vignette chrome, gestures, HLS quality, audio/subtitles, declarative ads, immersive fullscreen, Chromecast / AirPlay, PiP, lock, sleep timer, chapters, end screen, and **20+ languages** out of the box.
 
@@ -30,7 +30,7 @@ Soul Player is a free, highly configurable **video UI layer** on [`react-native-
 | Pain | Soul Player |
 |------|-------------|
 | Bare `react-native-video` has no product UI | Full chrome, gestures, settings, ads |
-| Building YouTube gestures takes weeks | Double-tap seek, hold-to-speed, swipe volume / brightness (built-in `SoulBrightnessModule`) |
+| Gesture UX takes weeks to get right | Double-tap seek, hold-to-speed, swipe volume / brightness (built-in `SoulBrightnessModule`) |
 | Ads + skip rules are messy | Declarative preroll / midroll / postroll, pod, waterfall, VAST |
 | i18n is an afterthought | `locale="auto"` + TR/EN + 20+ packs |
 | Fullscreen breaks on Android | Immersive Modal + orientation + sticky system bars |
@@ -120,7 +120,7 @@ android:resizeableActivity="true"
 | `endScreenItems` | `array` | End-screen actions |
 | `resumeTime` / `startTime` | `number` | Start / resume position (s) |
 | `isLive` / `isOffline` | `boolean` | Live badge / offline chip |
-| `preset` | `full` \| `minimal` \| `youtube` \| `tv` | Control presets |
+| `preset` | `full` \| `minimal` \| `gesture` \| `tv` | Control presets |
 | `holdRate` | `number` | Hold-to-speed rate |
 | `style` | `ViewStyle` | Root style |
 | `videoProps` | `object` | Raw `react-native-video` props (content only) |
@@ -317,7 +317,7 @@ Layout probe: player sits in a fixed **16:9** mid box with filler text below (is
 
 ## Keywords
 
-`react-native` · `react-native-video` · `video player` · `HLS` · `m3u8` · `ExoPlayer` · `AVPlayer` · `YouTube player UI` · `double tap seek` · `hold to speed` · `swipe volume` · `subtitle` · `closed captions` · `audio track` · `quality picker` · `adaptive bitrate` · `preroll` · `midroll` · `VAST` · `ad pod` · `Chromecast` · `AirPlay` · `PiP` · `picture in picture` · `fullscreen` · `immersive` · `i18n` · `Turkish` · `OTT` · `VOD` · `media player` · `soul-player`
+`react-native` · `react-native-video` · `video player` · `HLS` · `m3u8` · `ExoPlayer` · `AVPlayer` · `double tap seek` · `hold to speed` · `swipe volume` · `subtitle` · `closed captions` · `audio track` · `quality picker` · `adaptive bitrate` · `preroll` · `midroll` · `VAST` · `ad pod` · `Chromecast` · `AirPlay` · `PiP` · `picture in picture` · `fullscreen` · `immersive` · `i18n` · `Turkish` · `OTT` · `VOD` · `media player` · `soul-player`
 
 Types: [`index.d.ts`](./index.d.ts).
 
