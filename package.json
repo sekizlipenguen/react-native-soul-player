@@ -1,6 +1,6 @@
 {
   "name": "@sekizlipenguen/react-native-soul-player",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "YouTube-class React Native video player UI on react-native-video: gestures, HLS quality, audio/subtitles, ads (preroll/midroll/VAST), immersive fullscreen, Chromecast, AirPlay, PiP, lock, i18n (TR+20 locales).",
   "main": "index.js",
   "types": "index.d.ts",
@@ -16,7 +16,9 @@
   },
   "files": [
     "src",
-    "android",
+    "android/src",
+    "android/build.gradle",
+    "android/gradle.properties",
     "ios",
     "docs",
     "react-native-soul-player.podspec",
