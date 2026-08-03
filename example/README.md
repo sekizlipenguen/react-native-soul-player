@@ -38,12 +38,3 @@ Example `Info.plist` lists portrait + landscape. `AppDelegate` returns `SoulPlay
 ## Android PiP
 
 Example `AndroidManifest.xml` already sets `supportsPictureInPicture` + `resizeableActivity` on `MainActivity`.
-
-## Maestro E2E
-
-```bash
-maestro --device emulator-5554 test maestro/soul-e2e-android.yaml
-maestro --device <ios-udid> test maestro/soul-e2e-ios.yaml
-```
-
-Screenshots: `/tmp/soul-player-maestro` (gitignored). YAML only under `maestro/`.

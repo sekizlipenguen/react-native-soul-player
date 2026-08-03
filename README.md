@@ -313,16 +313,6 @@ yarn android   # or: yarn ios
 
 Layout probe: player sits in a fixed **16:9** mid box with filler text below (isolates chrome/layout bugs from SafeArea / flex fill).
 
-### Maestro E2E
-
-Flows live under [`example/maestro/`](./example/maestro/) (`soul-e2e-ios.yaml`, `soul-e2e-android.yaml`). Screenshots go to **`/tmp/soul-player-maestro`** (not committed).
-
-```bash
-# device / simulator already booted + app installed + Metro running
-maestro --device <deviceId> test example/maestro/soul-e2e-android.yaml
-maestro --device <udid> test example/maestro/soul-e2e-ios.yaml
-```
-
 ---
 
 ## Keywords
